@@ -1,65 +1,92 @@
-import Image from "next/image";
+"use client";
+
+import { useStatement } from "@/hooks/useStatement";
+import { FileUpload } from "@/components/FileUpload";
+import { SummaryCards } from "@/components/SummaryCards";
+import { TransactionControls } from "@/components/TransactionControls";
+import { TransactionTable } from "@/components/TransactionTable";
+import { TopCounterparties } from "@/components/TopCounterparties";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const {
+    transactions,
+    rawTransactionsCount,
+    skippedRows,
+    errors,
+    filter,
+    setFilter,
+    searchQuery,
+    setSearchQuery,
+    summary,
+    handleParseResult,
+    reset,
+  } = useStatement();
+
+  const isLoaded = rawTransactionsCount > 0 || skippedRows > 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8 font-sans">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Аналізатор банківської виписки</h1>
+            <p className="text-slate-500 mt-1">Завантажте CSV файл для перегляду підсумків та транзакцій.</p>
+          </div>
+          {isLoaded && (
+            <Button variant="outline" onClick={reset} className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" /> Завантажити інший файл
+            </Button>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {!isLoaded ? (
+          <div className="max-w-xl mx-auto mt-12">
+            <FileUpload onUpload={handleParseResult} />
+          </div>
+        ) : (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {skippedRows > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                <div>
+                  <h4 className="font-medium text-amber-800">Увага: Пропущено {skippedRows} рядків</h4>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Деякі рядки не відповідали формату і були пропущені.
+                  </p>
+                  {errors.length > 0 && (
+                    <div className="mt-2 text-xs text-amber-600 max-h-24 overflow-y-auto">
+                      {errors.slice(0, 5).map((e, i) => (
+                        <div key={i}>Рядок {e.row}: {e.error}</div>
+                      ))}
+                      {errors.length > 5 && <div>та ще {errors.length - 5} помилок...</div>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <SummaryCards summary={summary} />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <TransactionControls
+                  filter={filter}
+                  setFilter={setFilter}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                />
+                <TransactionTable transactions={transactions} />
+              </div>
+              <div className="lg:col-span-1">
+                <TopCounterparties topCounterparties={summary.topCounterparties} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }

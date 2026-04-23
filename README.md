@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bank Statement Analyzer (Тестове завдання — Junior Fullstack)
 
-## Getting Started
+Це окремий маленький Next.js застосунок для аналізу банківських виписок (CSV-файлів), створений згідно з вимогами тестового завдання. Він містить таблицю транзакцій, зручну систему фільтрів, пошуку та інтерактивні картки підсумків.
 
-First, run the development server:
+## Як запустити
+
+Щоб розгорнути та запустити проєкт локально, виконайте наступні кроки у терміналі:
 
 ```bash
+# 1. Встановіть залежності
+npm install
+
+# 2. Запустіть сервер для розробки
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Після цього відкрийте [http://localhost:3000](http://localhost:3000) у вашому браузері.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Про рішення
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Найбільше часу та уваги пішло на правильне налаштування парсингу CSV-файлів та жорстку типізацію валідації через `Zod`, щоб додаток був стійким до непередбачуваних форматів чи пошкоджених рядків у виписці і просто пропускав їх з повідомленням. Також було неочевидним те, як правильно уникнути помилок гідрації (hydration mismatch) у зв'язці `Next.js 15 SSR` + компоненти з `shadcn-ui`, зокрема для елементів форм і подій `onChange`, що потребувало використання нативного HTML-інпута замість @base-ui. Для дизайну було використано Tailwind CSS, щоб швидко створити красиві та сучасні картки підсумків і мікроанімації з нуля без зайвого коду.
 
-## Learn More
+**Технічний стек:**
+- Next.js 15 (App Router)
+- React 19
+- TypeScript (strict)
+- Tailwind CSS
+- shadcn-ui
+- Zod (для валідації)
+- PapaParse (для CSV парсингу)
+- Vitest (для тестування)
 
-To learn more about Next.js, take a look at the following resources:
+## Відео роботи застосунку
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+![Демонстрація застосунку](./demo.webp)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Перевірка якості коду (лінтер та тести)
 
-## Deploy on Vercel
+Для того щоб переконатися, що код відповідає вимогам і не має помилок, можна запустити наступні команди:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint         # Перевірка лінтером
+npx tsc --noEmit     # Перевірка типів TypeScript
+npm run test         # Запуск юніт-тестів (Vitest)
+```
